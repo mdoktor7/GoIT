@@ -2,7 +2,7 @@ from collections import UserDict
 from datetime import datetime, timedelta
 import pickle
 from pathlib import Path
-from  abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 
 
 filename = Path("database.bin")
@@ -39,6 +39,7 @@ class Name(Field):
 
 class Phone(Field):
     def __init__(self, value):
+        super().__init__(value)
         self.__value = None
         self.value = value
 
