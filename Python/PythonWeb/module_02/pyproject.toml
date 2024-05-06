@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "Personal Assistant"
+name = "module-02"
 version = "0.1.0"
 description = ""
-authors = ["Mykhailo Sh <mdoktor696@gmail.com>"]
+authors = ["mdoktor7 <mdoktor696@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
