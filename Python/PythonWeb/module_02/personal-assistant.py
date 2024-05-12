@@ -5,7 +5,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 
-filename = Path("database.bin")
+filename = Path("data/database.bin")
 
 
 class Interface(ABC):
