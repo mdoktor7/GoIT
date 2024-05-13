@@ -4,4 +4,4 @@ WORKDIR .
 
 COPY . .
 
-CMD ["python", "your_script_name.py"]# 
+CMD ["python", "personal-assistant.py"]
