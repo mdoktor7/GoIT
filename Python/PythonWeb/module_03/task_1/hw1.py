@@ -3,6 +3,7 @@ import shutil
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
+
 def copy_file(source_file, target_dir):
     file_name = os.path.basename(source_file)
     file_ext = os.path.splitext(file_name)[1]
@@ -10,6 +11,7 @@ def copy_file(source_file, target_dir):
     os.makedirs(ext_dir, exist_ok=True)
     target_file = os.path.join(ext_dir, file_name)
     shutil.copy2(source_file, target_file)
+
 
 def process_directory(directory, target_dir):
     with os.scandir(directory) as entries:
@@ -19,9 +21,11 @@ def process_directory(directory, target_dir):
             elif entry.is_dir():
                 process_directory(entry.path, target_dir)
 
+
 def main(source_dir, target_dir='dist'):
     with ThreadPoolExecutor() as executor:
         executor.submit(process_directory, source_dir, target_dir)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process files in a directory and sort them by extension.')
