@@ -1,125 +1,87 @@
-import mimetypes
-import urllib.parse
+import os
 import json
-from datetime import datetime
-import logging
 import socket
-from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from threading import Thread
+import threading
+import datetime
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
 
-# from jinja2 import Environment, FileSystemLoader
-
-BASE_DIR = Path()
-BUFFER_SIZE = 1024
+# Server configuration
+HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 3000
-HTTP_HOST = '0.0.0.0'
 SOCKET_HOST = '127.0.0.1'
 SOCKET_PORT = 5000
 
-# jinja = Environment(loader=FileSystemLoader('templates'))
+storage_dir = 'storage'
+os.makedirs(storage_dir, exist_ok=True)
 
-
-class GoitFramework(BaseHTTPRequestHandler):
-
+class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        route = urllib.parse.urlparse(self.path)
-        match route.path:
-            case '/':
-                self.send_html('templates/index.html')
-            case '/message':
-                self.send_html('templates/message.html')
-            case _:
-                file = BASE_DIR.joinpath(route.path[1:])
-                if file.exists():
-                    self.send_static(file)
-                else:
-                    self.send_html('templates/error.html', 404)
+        if self.path == '/':
+            self.path = '/templates/index.html'
+        elif self.path == '/message.html':
+            self.path = '/templates/message.html'
+        elif self.path.startswith('/static/'):
+            pass
+        else:
+            self.path = '/templates/error.html'
+        return super().do_GET()
 
     def do_POST(self):
-        size = self.headers.get('Content-Length')
-        data = self.rfile.read(int(size))
-
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        client_socket.sendto(data, (SOCKET_HOST, SOCKET_PORT))
-        client_socket.close()
-
-        self.send_response(302)
-        self.send_header('Location', '/contact')
-        self.end_headers()
-
-    def send_html(self, filename, status_code=200):
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'text/html')
-        self.end_headers()
-        with open(filename, 'rb') as file:
-            self.wfile.write(file.read())
-
-    def render_template(self, filename, status_code=200):
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'text/html')
-        self.end_headers()
-
-        with open('storage/data.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        
-    def send_static(self, filename, status_code=200):
-        self.send_response(status_code)
-        mime_type, *_ = mimetypes.guess_type(filename)
-        if mime_type:
-            self.send_header('Content-Type', mime_type)
+        parsed_path = urlparse(self.path)
+        if parsed_path.path == '/submit_message':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = parse_qs(post_data.decode())
+            message = {
+                'username': data['username'][0],
+                'message': data['message'][0]
+            }
+            self.send_to_socket_server(message)
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(b"Message received")
         else:
-            self.send_header('Content-Type', 'text/plain')
-        self.end_headers()
-        with open(filename, 'rb') as file:
-            self.wfile.write(file.read())
+            self.send_error(404)
+            self.path = '/templates/error.html'
+            return super().do_GET()
 
+    def send_to_socket_server(self, message):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        message_bytes = json.dumps(message).encode()
+        sock.sendto(message_bytes, (SOCKET_HOST, SOCKET_PORT))
+        sock.close()
 
-def save_data_from_form(data):
-    parse_data = urllib.parse.unquote_plus(data.decode())
-    try:
-        parse_dict = {key.datetime.now(): value for key, value in [el.split('=') for el in parse_data.split('&')]}
-        with open('storage/data.json', 'w', encoding='utf-8') as file:
-            json.dump(parse_dict, file, ensure_ascii=False, indent=4)
-    except ValueError as err:
-        logging.error(err)
-    except OSError as err:
-        logging.error(err)
+def handle_socket_client():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((SOCKET_HOST, SOCKET_PORT))
+    while True:
+        data, addr = sock.recvfrom(1024)
+        if not data:
+            continue
+        message = json.loads(data.decode())
+        timestamp = datetime.datetime.now().isoformat()
+        json_file = os.path.join(storage_dir, 'data.json')
+        if os.path.exists(json_file):
+            with open(json_file, 'r') as f:
+                messages = json.load(f)
+        else:
+            messages = {}
+        messages[timestamp] = message
+        with open(json_file, 'w') as f:
+            json.dump(messages, f, indent=2)
 
+def run_http_server():
+    server_address = (HTTP_HOST, HTTP_PORT)
+    httpd = HTTPServer(server_address, MyHTTPRequestHandler)
+    print(f"HTTP server running on {HTTP_HOST}:{HTTP_PORT}")
+    httpd.serve_forever()
 
-def run_socket_server(host, port):
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_socket.bind((host, port))
-    logging.info("Starting socket server")
-    try:
-        while True:
-            msg, address = server_socket.recvfrom(BUFFER_SIZE)
-            logging.info(f"Socket received {address}: {msg}")
-            save_data_from_form(msg)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server_socket.close()
+def run_socket_server():
+    print(f"Socket server running on {SOCKET_HOST}:{SOCKET_PORT}")
+    handle_socket_client()
 
-
-def run_http_server(host, port):
-    address = (host, port)
-    http_server = HTTPServer(address, GoitFramework)
-    logging.info("Starting http server")
-    try:
-        http_server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        http_server.server_close()
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(threadName)s %(message)s')
-
-    server = Thread(target=run_http_server, args=(HTTP_HOST, HTTP_PORT))
-    server.start()
-
-    server_socket = Thread(target=run_socket_server, args=(SOCKET_HOST, SOCKET_PORT))
-    server_socket.start()
+if __name__ == "__main__":
+    threading.Thread(target=run_http_server).start()
+    threading.Thread(target=run_socket_server).start()
