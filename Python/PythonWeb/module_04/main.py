@@ -7,9 +7,9 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
 # Server configuration
-HTTP_HOST = '127.0.0.1'
+HTTP_HOST = '0.0.0.0'
 HTTP_PORT = 3000
-SOCKET_HOST = '127.0.0.1'
+SOCKET_HOST = '0.0.0.0'
 SOCKET_PORT = 5000
 
 storage_dir = 'storage'
