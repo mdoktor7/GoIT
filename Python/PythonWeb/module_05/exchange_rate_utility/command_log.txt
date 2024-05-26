@@ -1,0 +1,10 @@
+2024-05-23 11:14:16.858310: exchange rates for ['USD', 'EUR'] over last 5 days
+2024-05-23 15:37:14.989120: exchange rates for ['USD', 'EUR', 'GBP', 'PLN'] over last 2 days
+2024-05-26 18:09:19.614186: exchange rates for ['USD', 'EUR', 'GBP', 'PLN'] over last 2 days
+2024-05-26 18:10:22.664884: exchange rates for ['USD', 'EUR', 'GBP', 'PLN'] over last 11 days
+2024-05-26 18:46:28.873153: exchange rates for ['USD', 'EUR'] over last 1 days
+2024-05-26 18:47:18.892672: exchange rates for ['USD', 'EUR'] over last 20 days
+2024-05-26 19:32:50.874460: exchange rates for ['USD', 'EUR'] over last 10 days
+2024-05-26 20:48:48.438232: exchange rates for ['USD', 'EUR'] over last 2 days
+2024-05-26 20:55:00.082059: exchange command with 3 days
+2024-05-26 20:55:58.133559: exchange command with 10 days
