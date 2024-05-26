@@ -1,22 +1,34 @@
-console.log('Hello world!')
+document.addEventListener("DOMContentLoaded", () => {
+  const formChat = document.getElementById("formChat");
+  const textField = document.getElementById("textField");
+  const subscribeDiv = document.getElementById("subscribe");
 
-const ws = new WebSocket('ws://localhost:8765')
+  const ws = new WebSocket("ws://localhost:8080");
 
-formChat.addEventListener('submit', (e) => {
-    e.preventDefault()
-    ws.send(textField.value)
-    textField.value = null
-})
+  ws.onopen = () => {
+    console.log("Connected to the WebSocket server");
+  };
 
-ws.onopen = (e) => {
-    console.log('Hello WebSocket!')
-}
+  ws.onmessage = (event) => {
+    const message = document.createElement("div");
+    message.textContent = event.data;
+    subscribeDiv.appendChild(message);
+  };
 
-ws.onmessage = (e) => {
-    console.log(e.data)
-    text = e.data
+  ws.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
 
-    const elMsg = document.createElement('div')
-    elMsg.textContent = text
-    subscribe.appendChild(elMsg)
-}
+  ws.onclose = () => {
+    console.log("Disconnected from the WebSocket server");
+  };
+
+  formChat.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const message = textField.value;
+    if (message) {
+      ws.send(message);
+      textField.value = "";
+    }
+  });
+});

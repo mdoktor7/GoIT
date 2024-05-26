@@ -1,35 +1,20 @@
 import asyncio
 import logging
-
-import httpx
-import websockets
+import json
 import names
+import websockets
 from websockets import WebSocketServerProtocol
 from websockets.exceptions import ConnectionClosedOK
-from services.exchange_service import ExchangeService
+from services import ExchangeService, LoggingService
 from constants import SUPPORTED_CURRENCIES
-import json
+
 logging.basicConfig(level=logging.INFO)
 
 
-async def request(url: str) -> dict | str:
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url)
-        if r.status_code == 200:
-            result = r.json()
-            return result
-        else:
-            return "Не вийшло в мене взнати курс. Приват не відповідає :)"
-
-
-async def get_exchange():
+async def get_exchange(days: int):
     exchange_service = ExchangeService()
-    days = min(days, 10)
     exchange_data = await exchange_service.get_exchange_rates(SUPPORTED_CURRENCIES, days)
     return json.dumps(exchange_data)
-    # response = await request(f'https://api.privatbank.ua/p24api/pubinfo?exchange&coursid=5')
-    # # переробить на більш придатний результат
-    # return str(response)
 
 
 class Server:
@@ -46,22 +31,34 @@ class Server:
 
     async def send_to_clients(self, message: str):
         if self.clients:
-            [await client.send(message) for client in self.clients]
+            await asyncio.wait([client.send(message) for client in self.clients])
 
     async def ws_handler(self, ws: WebSocketServerProtocol):
         await self.register(ws)
         try:
-            await self.distrubute(ws)
+            await self.distribute(ws)
         except ConnectionClosedOK:
             pass
         finally:
             await self.unregister(ws)
 
-    async def distrubute(self, ws: WebSocketServerProtocol):
+    async def distribute(self, ws: WebSocketServerProtocol):
         async for message in ws:
-            if message == "exchange":
-                exchange = await get_exchange()
+            if message.startswith("exchange"):
+                parts = message.split()
+                try:
+                    days = int(parts[1]) if len(parts) > 1 else 1
+                    days = min(days, 10)
+                except ValueError:
+                    await self.send_to_clients("Invalid number of days. Please provide a number between 1 and 10.")
+                    continue
+
+                exchange = await get_exchange(days)
                 await self.send_to_clients(exchange)
+
+                # Log the command execution
+                logging_service = LoggingService()
+                await logging_service.log_command(f"exchange rates for {SUPPORTED_CURRENCIES} over last {days} days")
             elif message == 'Hello server':
                 await self.send_to_clients("Привіт мої карапузи!")
             else:
@@ -76,3 +73,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
+
