@@ -1,8 +1,10 @@
 from aiofile import AIOFile
 from aiopath import AsyncPath
 import datetime
+import logging
 from constants import LOG_FILE_PATH
 
+logging.basicConfig(level=logging.INFO)
 
 class LoggingService:
     def __init__(self, log_file_path=None):

@@ -1,13 +1,16 @@
 import argparse
 import asyncio
+import logging
 from services.exchange_service import ExchangeService
 from services.logging_service import LoggingService
 from constants import SUPPORTED_CURRENCIES
 from utils.date_utils import validate_days
 
+logging.basicConfig(level=logging.INFO)
 
 async def main(days):
     if not validate_days(days):
+        logging.error("The number of days should not exceed 10.")
         print("Error: The number of days should not exceed 10.")
         return
 
@@ -21,9 +24,9 @@ async def main(days):
 
         await logging_service.log_command(f"exchange rates for {SUPPORTED_CURRENCIES} over last {days} days")
     except Exception as e:
+        logging.error(f"An error occurred: {e}")
         print(f"An error occurred: {e}")
         await logging_service.log_command(f"error: {e}")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch exchange rates from PrivatBank")

@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const textField = document.getElementById("textField");
   const subscribeDiv = document.getElementById("subscribe");
 
-  const ws = new WebSocket("ws://localhost:8080");
+  const ws = new WebSocket("ws://localhost:9090");
 
   ws.onopen = () => {
     console.log("Connected to the WebSocket server");

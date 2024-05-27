@@ -2,15 +2,15 @@
 
 ## Introduction
 
-The Exchange Rate Utility is a Python-based console application that fetches and displays the EUR and USD exchange rates from PrivatBank over the past few days. The project also includes a WebSocket chat server where users can enter commands to retrieve exchange rates in real-time.
+This project is a console utility that fetches and displays the EUR and USD exchange rates of PrivatBank over the past few days. The utility can display the exchange rate for up to the last 10 days. Additionally, the project includes a chat server that allows users to enter commands to fetch exchange rates and interact with each other.
 
 ## Features
 
-- Fetch exchange rates for the last 10 days.
-- Support for additional currencies.
-- Asynchronous HTTP requests for efficient data fetching.
-- WebSocket chat server for real-time exchange rate queries.
-- Logging of exchange commands using `aiofile` and `aiopath`.
+- Fetch exchange rates for up to 10 days.
+- Display exchange rates for supported currencies (USD, EUR).
+- Log executed commands to a file.
+- Chat server to enter commands and view exchange rates.
+- Client script to send commands to the chat server.
 
 ## Setup and Installation
 
@@ -26,38 +26,34 @@ The Exchange Rate Utility is a Python-based console application that fetches and
    ```git clone https://github.com/mdoktor7/GoITRepos/tree/GoIT/Python/PythonWeb/module_05/exchange-rate-utility.git```
    ```cd exchange-rate-utility```
 
-2. Install the required packages:
-
+2. Create a virtual environment and install dependencies:
+    ```python -m venv venv```
+    ```source venv/bin/activate  # On Windows, use `venv\Scripts\activate```
     ```pip install -r requirements.txt```
 
 ### Usage
 
-1. Running the Console Utility
+### Fetch Exchange Rates
 
-    To run the console utility and fetch exchange rates for the past few days, use the following command:
-     ```py main.py 2```
+Run the console utility with the desired number of days (max 10):
+    ```py .\main.py <number_of_days>```
 
-    Here, '2' is the number of days for which you want to fetch the exchange rates.
 
-2. Running the WebSocket Chat Server
-    To start the WebSocket chat server, use the following command:
+### Chat Server  
+1. Start the chat server:
     ```py chat_server.py```
 
-### Using the WebSocket Client   
-   To start thePython WebSocket client script, use the following command:
-        ```py client.py```
+2. Open chat/index.html in your browser to connect to the chat server.
+
+3. Use the command ```exchange <number_of_days>``` in the chat to fetch exchange rates
+
+
+### WebSocket Client   
+1. Ensure the chat server is running.
+2. Run the client script:
+    ```py client.py```
+3. The client will send an exchange command and display the response.    
     
-    Here’s an example command to retrieve exchange rates for the last 3 days:
-    ```json    
-        {"command": "exchange", "days": 3}
-
-### Contribution Guidelines
-
-1. Fork the repository.
-2. Create a new branch (git checkout -b feature-branch).
-3. Commit your changes (git commit -m 'Add some feature').
-4. Push to the branch (git push origin feature-branch).
-5. Open a pull request.
 
 ### License
 
