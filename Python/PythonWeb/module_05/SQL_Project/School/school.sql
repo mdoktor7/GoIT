@@ -5,9 +5,7 @@ USE School;
 -- Table of Students
 CREATE TABLE Students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    date_of_birth DATE,
+    student VARCHAR(50) NOT NULL,
     group_id INT,
     FOREIGN KEY (group_id) REFERENCES Groups(group_id)
 );
@@ -21,8 +19,8 @@ CREATE TABLE Groups (
 -- Table of Teachers
 CREATE TABLE Teachers (
     teacher_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL
+    teacher VARCHAR(50) NOT NULL,
+    
 );
 
 -- Table of Subjects
@@ -35,11 +33,9 @@ CREATE TABLE Subjects (
 
 -- Table of Grades
 CREATE TABLE Grades (
-    grade_id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT,
-    subject_id INT,
-    grade DECIMAL(3, 2) NOT NULL CHECK (grade >= 0.00 AND grade <= 100.00),
+    grade TINYINT UNSIGNED NOT NULL 
     date_received DATE NOT NULL,
     FOREIGN KEY (student_id) REFERENCES Students(student_id),
-    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id),
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id)
 );
